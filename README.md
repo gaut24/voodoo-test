@@ -63,13 +63,48 @@ Many other applications at Voodoo will use consume this API.
 We are planning to put this project in production. According to you, what are the missing pieces to make this project production ready? 
 Please elaborate an action plan.
 
+    To make your Express/Vue.js project production-ready, here's an updated action plan:
+
+    1. Code Coverage: Expand your test coverage beyond the controller layer. Implement end-to-end and integration tests using tools like Cypress or Playwright to ensure the behavior of the entire application and API.
+
+    2. Database: Move from using SQLite to a more powerful database such as PostgreSQL. Consider using a DBaaS like AWS Aurora for scalability and reliability. Create a clean and protected database configuration file.
+
+    3. Security: Implement a security layer for the API to allow only authenticated users to interact with the application and API. Consider using JWT tokens for authentication. Create different user roles to control access to various features. Implement measures to protect against common vulnerabilities like XSS and DDoS attacks.
+
+    4. Error Handling: Centralize error handling and set up alerts for critical errors. Ensure that errors are clear and meaningful for easy debugging. Tools like Sentry can help with error monitoring and alerting.
+
+    5. Performance Monitoring: Monitor application performance metrics such as endpoint latency and real-time error rates. Consider using tools like Datadog to set up Service Level Indicators (SLIs) and Service Level Objectives (SLOs) to gain insights into user experience and performance.
+
+    6. Deployment: Implement a robust CI/CD pipeline to automate the deployment process and prevent regressions. Include steps for building, testing, and deploying the application. Consider using tools like Jenkins, GitLab CI/CD, or AWS CodePipeline to streamline the deployment workflow.
+
+
 #### Question 2:
 Let's pretend our data team is now delivering new files every day into the S3 bucket, and our service needs to ingest those files
 every day through the populate API. Could you describe a suitable solution to automate this? Feel free to propose architectural changes.
 
+    In my opinion, we should automate the file ingestion process instead of relying on daily user actions. Here's an updated version of the action plan:
+
+    1. Automation Trigger: Set up an event trigger on the S3 bucket to automatically initiate the file ingestion process whenever a new file is added. This can be achieved using AWS Lambda.
+
+    2. File Ingestion Function: Create a Lambda function that will handle the file ingestion process. This function will be triggered when a new file will be created.
+
+    3. File Processing and Validation: Within the Lambda function, implement the necessary logic to process and validate the incoming files. This may involve parsing the file, extracting relevant data, performing transformations, and validating the data against predefined rules or schemas.
+
+    4. API Integration: Refactor the 'api/games/populate' endpoint to accept JSON directly in the body of the request instead of relying on URLs. Modify the Lambda function to make API calls to this endpoint, passing the processed and validated data as JSON.
+
+    5. Error Handling and Retries: Implement error handling mechanisms within the Lambda function to handle errors that occur during file ingestion or API calls. Set up automatic retries for transient failures to ensure robustness. Additionally, post error messages or notifications to a Slack channel to alert the team about any issues.
+
+    6. Monitoring Performance and Errors: Utilize a monitoring tool like Datadog to track the performance and errors in the file ingestion process. Monitor key metrics such as processing time, error rates, and resource utilization. This will help identify bottlenecks and ensure the system is running smoothly.
+
+
+
 #### Question 3:
 Both the current database schema and the files dropped in the S3 bucket are not optimal.
 Can you find ways to improve them?
+
+    First of all, we should start by restructuring the database to normalize it. For example, the publisher should have its own table. Normalization helps organize data in a structured manner, reducing redundancy, and ensuring consistency. It allows for the enforcement of data consistency rules. Additionally, normalized databases improve efficiency in terms of storage and performance. As said before, we should also use another DB such as PostgreSQL.
+
+    Instead of relying on files in S3, we can directly integrate APIs from both providers. This approach reduces the complexity of the ingestion pipeline and enables us to fetch data in real-time and process it directly within our API. To ensure seamless integration, I recommend implementing a contract when communicating with these APIs. This contract will define the expected data format and establish a mechanism for being notified if the data format changes. By proactively monitoring and adapting to any changes in the data format, we can ensure the continuous and accurate ingestion of data from the providers' APIs.
 
 
 
