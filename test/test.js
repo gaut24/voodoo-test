@@ -148,3 +148,47 @@ describe('POST /api/games/search', () => {
         assert.strictEqual(body.length, 1)
     });
 });
+
+/**
+ * Testing populate games endpoint
+ */
+describe('POST /api/games/populate', () => {
+
+    beforeEach(async () => {
+        await db.Game.destroy({
+            truncate: true
+          })
+    });
+    
+    afterEach( async () => {
+        await db.Game.destroy({
+            truncate: true
+          })
+    });
+
+    it('respond with 201 and should populate all app from the android file', async () => {
+        const {status} = await request(app)
+            .post('/api/games/populate')
+            .set('Accept', 'application/json')
+            .send({jsonUrl: 'https://interview-marketing-eng-dev.s3.eu-west-1.amazonaws.com/android.top100.json'});
+        assert.strictEqual(status, 201);
+        assert.strictEqual(await db.Game.count(), 300);
+    });
+
+    it('respond with 201 and should populate all app from ios the file', async () => {
+        const {status} = await request(app)
+            .post('/api/games/populate')
+            .set('Accept', 'application/json')
+            .send({jsonUrl: 'https://interview-marketing-eng-dev.s3.eu-west-1.amazonaws.com/ios.top100.json'});
+        assert.strictEqual(status, 201);
+        assert.strictEqual(await db.Game.count(), 300);
+    });
+
+    it('respond with error if url does not return json', async () => {
+        const {status} = await request(app)
+            .post('/api/games/populate')
+            .set('Accept', 'application/json')
+            .send({jsonUrl: 'https://interview/ios.top100.json'});
+        assert.strictEqual(status, 400);
+    });
+});
