@@ -38,6 +38,11 @@
       <add-update-game title="Add Game" @save-game="onAddOrUpdateGame" />
     </div>
   </section>
+  <section class="section section-container" style="padding-bottom: 10px;">
+    <div class="box">
+      <populate @populate-games-db="populateGames"/>
+    </div>
+  </section>
 </div>
 <script>
   const AddUpdateGame = {
@@ -207,9 +212,27 @@
     `
   }
 
+  const Populate = {
+    methods: {
+      populateGames() {
+        this.$emit('populate-games-db')
+      }
+    },
+    template: `
+       <form class="form" @submit.prevent="populateGames">
+        <h2 class="title">Populate Database</h2>
+        <div class="field">
+          <div class="control">
+            <button class="button is-success">Let's go!</button>
+          </div>
+        </div>
+      </form>
+    `
+  }
+
   new Vue({
     el: '#app',
-    components: { game: Game, 'add-update-game': AddUpdateGame, 'search-games': Search },
+    components: { game: Game, 'add-update-game': AddUpdateGame, 'search-games': Search, 'populate': Populate },
     data: {
       games: [],
       search: [],
@@ -255,6 +278,9 @@
           .then((response) => {
             this.games = response.data
           })
+      },
+      populateGames () {
+        return axios.get(`${this.apiURL}/populate`)
       }
     },
     beforeMount () {

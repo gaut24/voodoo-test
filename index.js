@@ -3,11 +3,15 @@ const bodyParser = require('body-parser');
 const { db, Op } = require('./models');
 const request = require('request');
 
+const URLS = [
+  'https://interview-marketing-eng-dev.s3.eu-west-1.amazonaws.com/android.top100.json',
+  'https://interview-marketing-eng-dev.s3.eu-west-1.amazonaws.com/ios.top100.json'
+]
+
 const app = express();
 
 app.use(bodyParser.json());
 app.use(express.static(`${__dirname}/static`));
-
 
 app.get('/api/games', async (req, res) => {
   try {
@@ -74,18 +78,19 @@ app.post('/api/games/search', async(req, res) => {
   }
 });
 
-app.post('/api/games/populate', async(req, res) => {
+app.get('/api/games/populate', async(req, res) => {
   try {
-    const {jsonUrl} = req.body;
-    const parsedGames = [];
-    const json = await fetch(jsonUrl).then(res => res.json());
-    for(const games of json) {
-      for(const game of games) {
-        const {publisher_id: publisherId, humanized_name: name, os: platform, bundle_id: bundleId, version: appVersion, appId: storeId} = game;
-        parsedGames.push({publisherId, name, platform, bundleId, appVersion, storeId, isPublished: true});
+    for(const url of URLS) {    
+      const parsedGames = [];
+      const json = await fetch(url).then(res => res.json());
+      for(const games of json) {
+        for(const game of games) {
+          const {publisher_id: publisherId, humanized_name: name, os: platform, bundle_id: bundleId, version: appVersion, appId: storeId} = game;
+          parsedGames.push({publisherId, name, platform, bundleId, appVersion, storeId, isPublished: true});
+        }
       }
+      await db.Game.bulkCreate(parsedGames);
     }
-    await db.Game.bulkCreate(parsedGames);
     return res.status(201).send();
   } catch(err) {
     console.error('***There was an error while searching games', err);
